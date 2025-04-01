@@ -4,6 +4,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { appRateLimiter } from '../sanitizers/rateLimiter';
 import { validateBookDetailsMiddleware, RequestWithSanitizedBookDetails } from '../sanitizers/bookSanitizer';
+import { handleSafeError, sendSafeErrorResponse } from '../sanitizers/errorHandler';
 
 const router = express.Router();
 
@@ -29,10 +30,10 @@ router.post('/', validateBookDetailsMiddleware, async (req: RequestWithSanitized
       const savedBook = await book.saveBookOfExistingAuthorAndGenre(familyName, firstName, genreName, bookTitle);
       res.status(200).send(savedBook);
     } catch (err: unknown) {
-      res.status(500).send('Error creating book: ' + (err as Error).message);
+        handleSafeError(res, 500, 'Error creating book', err);
     }
   } else {
-    res.send('Invalid Inputs');
+      sendSafeErrorResponse(res, 400, 'Invalid Inputs');
   }
 });
 
